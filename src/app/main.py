@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-# Import optimization engines
-from optimization.optimize_glp1 import optimize_for_diabetes, optimize_for_obesity
-from optimization.optimize_ms import optimize_for_ms
+# Import optimization engines (package-relative)
+from ..optimization.optimize_glp1 import optimize_for_diabetes, optimize_for_obesity
+from ..optimization.optimize_ms import optimize_for_ms
 
 app = FastAPI(
     title="Peptide Optimization API",

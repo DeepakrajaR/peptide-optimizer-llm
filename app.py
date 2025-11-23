@@ -1,3 +1,15 @@
+import os
+import sys
+
+# Add src/ to the Python path so we can import optimization, models, etc.
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+SRC_DIR = os.path.join(ROOT_DIR, "src")
+if SRC_DIR not in sys.path:
+    sys.path.append(SRC_DIR)
+
+from optimization.optimize_glp1 import optimize_for_diabetes, optimize_for_obesity
+from optimization.optimize_ms import optimize_for_ms
+
 import streamlit as st
 import requests
 
