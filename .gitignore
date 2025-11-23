@@ -1,0 +1,64 @@
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+*.pickle
+*.pkl
+*.log
+
+# -------------------------
+# Virtual Environment
+# -------------------------
+.venv/
+env/
+venv/
+ENV/
+
+# -------------------------
+# Model artifacts (optional)
+# If you want to include your /data/processed models, then REMOVE these
+# Otherwise they will be ignored.
+# -------------------------
+*.joblib
+
+# -------------------------
+# Cache & temp
+# -------------------------
+.cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# -------------------------
+# Editor Settings
+# -------------------------
+.vscode/
+.idea/
+
+# -------------------------
+# Streamlit
+# -------------------------
+.streamlit/
+
+# -------------------------
+# Byte-compiled / optimized files
+# -------------------------
+*.so
+
+# -------------------------
+# OS-specific
+# -------------------------
+Thumbs.db
+
+# -------------------------
+# Data and secrets
+# NOTE:
+# Do NOT ignore data/raw if you want GLP1R_complete_approx.xlsx included.
+# So only ignore secrets.
+# -------------------------
+*.env
