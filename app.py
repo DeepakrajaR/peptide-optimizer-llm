@@ -79,14 +79,19 @@ if st.button("Optimize"):
         if data is None:
             st.info("Backend not reachable — running local optimization (this may load model files).")
             disease_key = payload["disease"]
-            if disease_key == "diabetes":
-                candidates = optimize_for_diabetes(payload["starting_sequence"], payload["top_k"])
-            elif disease_key == "obesity":
-                candidates = optimize_for_obesity(payload["starting_sequence"], payload["top_k"])
-            else:
-                candidates = optimize_for_ms(payload["starting_sequence"], payload["top_k"])
+            try:
+                if disease_key == "diabetes":
+                    candidates = optimize_for_diabetes(payload["starting_sequence"], payload["top_k"])
+                elif disease_key == "obesity":
+                    candidates = optimize_for_obesity(payload["starting_sequence"], payload["top_k"])
+                else:
+                    candidates = optimize_for_ms(payload["starting_sequence"], payload["top_k"])
 
-            data = {"candidates": candidates}
+                data = {"candidates": candidates}
+            except Exception as e:
+                # Show an informative error to the user instead of crashing
+                st.error("Local optimization failed: " + str(e))
+                data = {"candidates": []}
 
         st.subheader("Optimized candidates")
         candidates = data.get("candidates", [])

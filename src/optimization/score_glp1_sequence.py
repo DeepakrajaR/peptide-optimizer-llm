@@ -1,17 +1,56 @@
-import joblib
+import os
 import numpy as np
-from models.features_glp1 import GLP1FeatureEncoder
 
 # --- 1. Define the baseline GLP-1 sequence ---
 # Human GLP-1 (7-36)
 BASE_GLP1 = "HAEGTFTSDVSSYLEGQAAKEFIAWLVKGR"
 
-# --- 2. Load encoder & model only once ---
-ENCODER_PATH = "data/processed/glp1_encoder.pkl"
-MODEL_PATH   = "data/processed/model_glp1_diabetes_rf.pkl"
+# Module-level cache for lazy-loaded encoder & model
+_encoder = None
+_model = None
 
-encoder = joblib.load(ENCODER_PATH)
-model   = joblib.load(MODEL_PATH)
+
+def _data_path(name: str) -> str:
+    """Return absolute path to data/processed/<name> relative to repo root."""
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    return os.path.join(root, 'data', 'processed', name)
+
+
+def _load_encoder_and_model():
+    """
+    Lazy-load encoder and model. Raises ImportError with helpful message
+    if required packages are missing.
+    """
+    global _encoder, _model
+    if _encoder is not None and _model is not None:
+        return _encoder, _model
+
+    try:
+        import joblib
+    except Exception as e:
+        raise ImportError(
+            "Missing dependency 'joblib'. Add 'joblib' to requirements.txt and redeploy."
+        ) from e
+
+    try:
+        # Import encoder implementation only when needed
+        from models.features_glp1 import GLP1FeatureEncoder
+    except Exception:
+        # Allow joblib to load a persisted encoder even if source class is unavailable
+        GLP1FeatureEncoder = None
+
+    ENCODER_PATH = _data_path('glp1_encoder.pkl')
+    MODEL_PATH = _data_path('model_glp1_diabetes_rf.pkl')
+
+    try:
+        _encoder = joblib.load(ENCODER_PATH)
+        _model = joblib.load(MODEL_PATH)
+    except Exception as e:
+        raise RuntimeError(
+            f"Failed to load encoder/model from '{ENCODER_PATH}' and '{MODEL_PATH}': {e}"
+        ) from e
+
+    return _encoder, _model
 
 
 # --- 3. Extract mutations from a user sequence ---
@@ -39,6 +78,9 @@ def score_sequence_for_diabetes(seq):
 
     if not mutations:
         return 0.0  # identical to baseline → neutral effect
+
+    # Ensure encoder & model are available
+    encoder, model = _load_encoder_and_model()
 
     # Build a temporary dataframe to feed the encoder
     import pandas as pd
