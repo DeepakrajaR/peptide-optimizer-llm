@@ -29,6 +29,58 @@ def _call_backend(payload: dict, timeout: float = 2.0):
     except (requests.RequestException, socket.timeout):
         return None
 
+
+def _is_backend_up(timeout: float = 0.5) -> bool:
+    """Quick check whether local backend is reachable."""
+    try:
+        resp = requests.get(f"{API_URL}/", timeout=timeout)
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
+_backend_started = False
+def start_local_backend_if_needed(wait: float = 2.0):
+    """
+    Try to start a local FastAPI backend (uvicorn) in a background thread
+    if it's not already reachable. This is best-effort — some hosting
+    environments (like Streamlit Cloud) may disallow background servers.
+    """
+    global _backend_started
+    if _backend_started:
+        return
+
+    if _is_backend_up():
+        _backend_started = True
+        return
+
+    try:
+        import threading
+
+        def _run_uvicorn():
+            # Start uvicorn programmatically; avoid --reload here
+            try:
+                import uvicorn
+                # Run the FastAPI app module used in this project
+                uvicorn.run("src.app.main:app", host="127.0.0.1", port=8000, log_level="warning")
+            except Exception:
+                pass
+
+        t = threading.Thread(target=_run_uvicorn, daemon=True)
+        t.start()
+
+        # Wait briefly for the server to come up
+        import time
+        t_end = time.time() + wait
+        while time.time() < t_end:
+            if _is_backend_up():
+                _backend_started = True
+                return
+            time.sleep(0.2)
+    except Exception:
+        # Best-effort only — don't raise here.
+        return
+
 st.set_page_config(
     page_title="Peptide Optimization Chatbot",
     page_icon="🧬",
